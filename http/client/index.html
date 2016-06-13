@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Mud Test</title>
+        <!-- Inconsolata font desde google fonts -->
+        <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css' />
+    </head>
+    <body>
+        
+        <div id="output-container">
+            <stdout></stdout>
+        </div>
+        
+        <script src="http://192.168.107.129:8080/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="bower_components/vue/dist/vue.min.js"></script>
+        <script type="text/javascript">
+            // Esperamos a que el DOM este listo
+            document.addEventListener("DOMContentLoaded", function(event) {     
+
+                // Configuramos socket.io
+                var socket = io.connect('http://192.168.107.129:8080');
+            
+                // Habilitamos devtools para poder usar el plugin de chrome vue-devtools
+                Vue.config.devtools = true;
+            
+                // Componente que genera el output de la consola
+                Vue.component('stdout', {
+                    props: {
+                    
+                    },
+                    data: function(){
+                        return {
+                            // Contenedor de todos los mensajes de la consola
+                            history: [],    
+
+                            style: {
+                                width: '100%',
+                                height: '100%',
+                                bgcolor: '#111',
+                                font: {
+                                    family: 'Inconsolata',
+                                    size: 14,
+                                    color: '#fff'
+                                }
+                            },
+
+                            cursorPosition: {
+                                x: 10,
+                                y: 0                        
+                            }
+                        }
+                    },
+                    template: '<canvas id="stdout"></canvas>',
+                    ready: function(){
+                        var self = this;       
+
+                        socket.on('response', function(res){
+                            self.writeln('hello');
+                            self.writeln('hello');
+                            self.writeln('hello');
+                            self.writeln('hello');
+                            self.writeln('hello');
+                            self.render();
+                        });    
+                    },
+                    methods: {
+                        getContext: function(){
+                            return this.$el.getContext('2d');
+                        },
+                        getCanvasSize: function(){
+                            var self = this;
+                            return {
+                                width: self.$el.width,
+                                height: self.$el.height
+                            }
+                        },
+                        writeln: function(msg){
+                            // TODO
+                            this.history.push(msg);
+                        },
+                        clearScreen: function(){
+                            this.history = [];
+                            // TODO crear metodo setposition
+                            this.cursorPosition.x = 15;
+                            this.cursorPosition.y = 0;
+                        },
+                        render: function(){
+                            var ctx = this.getContext();        
+                            //this.clearScreen();
+                            this.$el.style.backgroundColor = '#111';
+                            for(var i = this.history.length; i > 0; i--){
+                                ctx.font = this.style.font.size + "px Inconsolata";
+                                ctx.fillStyle = this.style.font.color;
+                                ctx.fillText(this.history[i], 0, this.cursorPosition.y += this.style.font.size);
+                            }
+                        }
+                    }
+                });
+                
+                // Instanciamos Vue y especificamos el elemento raiz
+                new Vue({
+                    el: 'body'
+                });
+            });
+        </script>
+    </body>
+</html>
